@@ -1,43 +1,40 @@
-/* ─── Rotate prompt ───────────────────────────────────────── */
+/* ─── Orientation toggle (top-left) ───────────────────────── */
 
-#rotate-prompt {
-  display: none;
-  flex-direction: column;
+#btn-orientation {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 60;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.3rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.15s;
+}
+
+#btn-orientation:active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Force-landscape: rotate entire page 90° for portrait-mode users */
+body.force-landscape {
   position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: rgba(255, 255, 255, 0.9);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.rotate-icon {
-  font-size: 4rem;
-  animation: spin 2s ease-in-out infinite alternate;
-}
-
-#rotate-prompt p {
-  font-size: 1.1rem;
-  letter-spacing: 0.04em;
-  opacity: 0.7;
-}
-
-@keyframes spin {
-  from { transform: rotate(-30deg); }
-  to   { transform: rotate(30deg); }
-}
-
-/* Portrait: show rotate prompt (video stays behind it, blurred) */
-@media (orientation: portrait) {
-  #rotate-prompt { display: flex; }
-  #transport,
-  #pad-grid,
-  #start-overlay { display: none; }
+  width: 100vh;
+  height: 100vw;
+  top: calc((100vh - 100vw) / 2);
+  left: calc((100vw - 100vh) / 2);
+  transform: rotate(90deg);
+  transform-origin: center;
+  overflow: hidden;
 }
 
 /* ─── Start overlay ───────────────────────────────────────── */
@@ -57,11 +54,6 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   cursor: pointer;
   transition: opacity 0.4s ease;
-}
-
-#start-overlay.fade-out {
-  opacity: 0;
-  pointer-events: none;
 }
 
 .start-label {
