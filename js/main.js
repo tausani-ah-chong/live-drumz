@@ -38,7 +38,7 @@ btnBt.addEventListener('click', () => {
 
 btSlider.addEventListener('input', () => {
   const ms = Number(btSlider.value);
-  btValue.textContent = `${ms} ms`;
+  btValue.textContent = ms === 0 ? '0 ms' : `${ms > 0 ? '+' : ''}${ms} ms`;
   applyBtDelay(ms);
 });
 
