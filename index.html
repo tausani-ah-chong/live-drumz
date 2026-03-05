@@ -30,6 +30,16 @@
   <div id="transport">
     <button id="btn-play-pause" aria-label="Play or pause">⏸</button>
     <button id="btn-bt" aria-label="Bluetooth sync">BT</button>
+    <button id="btn-load" aria-label="Load YouTube URL">URL</button>
+  </div>
+
+  <div id="yt-load-panel" hidden>
+    <p class="yt-load-label">Paste a YouTube playlist or video URL</p>
+    <div class="yt-load-row">
+      <input type="url" id="yt-url-input" placeholder="https://youtube.com/…" autocomplete="off" spellcheck="false">
+      <button id="yt-url-go">Go</button>
+    </div>
+    <p class="yt-load-error" id="yt-load-error" hidden>Couldn't recognise that URL</p>
   </div>
 
   <div id="bt-panel" hidden>

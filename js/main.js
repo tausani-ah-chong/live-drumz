@@ -1,4 +1,4 @@
-import { initPlayer, togglePlay, prevVideo, nextVideo, unMute, ensurePlaying, applyBtDelay } from './youtube.js';
+import { initPlayer, togglePlay, prevVideo, nextVideo, unMute, ensurePlaying, applyBtDelay, loadFromUrl } from './youtube.js';
 import { initPads } from './pads.js';
 import { getContext } from './audio/context.js';
 import { prerender } from './audio/synth.js';
@@ -37,6 +37,45 @@ btSlider.addEventListener('input', () => {
   const ms = Number(btSlider.value);
   btValue.textContent = ms === 0 ? '0 ms' : `${ms > 0 ? '+' : ''}${ms} ms`;
   applyBtDelay(ms);
+});
+
+// ─── YouTube URL load panel ─────────────────────────────────
+const btnLoad    = document.getElementById('btn-load');
+const ytPanel    = document.getElementById('yt-load-panel');
+const ytInput    = document.getElementById('yt-url-input');
+const ytGo       = document.getElementById('yt-url-go');
+const ytError    = document.getElementById('yt-load-error');
+
+function closeLoadPanel() {
+  btnLoad.classList.remove('load-active');
+  ytPanel.hidden = true;
+}
+
+btnLoad.addEventListener('click', () => {
+  const active = btnLoad.classList.toggle('load-active');
+  ytPanel.hidden = !active;
+  if (active) {
+    ytError.hidden = true;
+    setTimeout(() => ytInput.focus(), 50);
+  }
+});
+
+function submitUrl() {
+  const ok = loadFromUrl(ytInput.value.trim());
+  if (ok) {
+    ytInput.value = '';
+    closeLoadPanel();
+  } else {
+    ytError.hidden = false;
+  }
+}
+
+ytGo.addEventListener('click', submitUrl);
+ytInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitUrl(); });
+
+// Tapping the video overlay closes the panel if open
+document.getElementById('video-overlay').addEventListener('click', () => {
+  if (!ytPanel.hidden) closeLoadPanel();
 });
 
 // ─── Track switch helpers ───────────────────────────────────
