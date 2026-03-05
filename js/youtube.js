@@ -16,7 +16,7 @@ export async function initPlayer() {
 
   player = new YT.Player('yt-player', {
     playerVars: {
-      list: 'PLxA687tYuMWhRdXqaeqUbGtm9A1TVv5er',
+      list: 'PLDIoUOhQQPlXFSnCfj8HuVhOUSC0QwxYD',
       listType: 'playlist',
       autoplay: 1,
       mute: 1,
@@ -71,6 +71,55 @@ export function prevVideo() {
 export function nextVideo() {
   if (!player) return;
   player.nextVideo();
+}
+
+function parseYouTubeUrl(input) {
+  if (!input) return null;
+  input = input.trim();
+
+  // Bare playlist ID  (starts with PL, FL, RD, UU, … then alphanumeric)
+  if (/^[A-Z]{2}[A-Za-z0-9_-]{10,}$/.test(input)) {
+    return { type: 'playlist', id: input };
+  }
+  // Bare video ID (exactly 11 url-safe chars)
+  if (/^[A-Za-z0-9_-]{11}$/.test(input)) {
+    return { type: 'video', id: input };
+  }
+
+  let url;
+  try {
+    url = new URL(input);
+  } catch {
+    return null;
+  }
+
+  const list = url.searchParams.get('list');
+  const v    = url.searchParams.get('v');
+
+  // youtu.be/VIDEO_ID[?list=…]
+  if (url.hostname === 'youtu.be') {
+    const id = url.pathname.slice(1).split('/')[0];
+    if (list) return { type: 'playlist', id: list };
+    if (id)   return { type: 'video',    id };
+  }
+
+  if (url.hostname.includes('youtube.com')) {
+    if (list) return { type: 'playlist', id: list };
+    if (v)    return { type: 'video',    id: v };
+  }
+
+  return null;
+}
+
+export function loadFromUrl(raw) {
+  const parsed = parseYouTubeUrl(raw);
+  if (!parsed || !player) return false;
+  if (parsed.type === 'playlist') {
+    player.loadPlaylist({ list: parsed.id, listType: 'playlist', index: 0 });
+  } else {
+    player.loadVideoById(parsed.id);
+  }
+  return true;
 }
 
 export function applyBtDelay(ms) {
