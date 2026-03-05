@@ -1,4 +1,4 @@
-import { initPlayer, togglePlay, seekBy, unMute } from './youtube.js';
+import { initPlayer, togglePlay, seekBy, unMute, ensurePlaying } from './youtube.js';
 import { initPads } from './pads.js';
 import { getContext } from './audio/context.js';
 import { prerender } from './audio/synth.js';
@@ -13,6 +13,11 @@ initPads();
 document.getElementById('btn-play-pause').addEventListener('click', togglePlay);
 document.getElementById('btn-back').addEventListener('click', () => seekBy(-10));
 document.getElementById('btn-fwd').addEventListener('click', () => seekBy(10));
+
+// ─── Orientation toggle ─────────────────────────────────────
+document.getElementById('btn-orientation').addEventListener('click', () => {
+  document.body.classList.toggle('force-landscape');
+});
 
 // ─── Start overlay ─────────────────────────────────────────
 const overlay = document.getElementById('start-overlay');
@@ -30,13 +35,14 @@ function handleStart() {
   overlay.style.pointerEvents = 'none';
   setTimeout(() => overlay.remove(), 400);
 
-  // Pre-render sounds and unmute video in the background
+  // Start video playing and unmute; pre-render drum sounds in background
+  ensurePlaying();
   prerender().then(() => {
     unMute();
   });
 }
 
-// Use click for broadest compatibility; also touchstart for speed
+// touchstart for speed on mobile; click as fallback
 overlay.addEventListener('touchstart', (e) => {
   e.preventDefault();
   handleStart();
