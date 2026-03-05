@@ -1,13 +1,12 @@
 /* ─── Orientation ─────────────────────────────────────────── */
 
+/* Default: landscape — app visible, prompt hidden */
+#rotate-prompt { display: none; }
+
+/* Portrait only: hide app, show rotate prompt */
 @media (orientation: portrait) {
   #app { display: none; }
   #rotate-prompt { display: flex; }
-}
-
-@media (orientation: landscape) {
-  #app { display: block; }
-  #rotate-prompt { display: none; }
 }
 
 /* ─── Rotate prompt ───────────────────────────────────────── */
@@ -42,7 +41,6 @@
 /* ─── App shell ───────────────────────────────────────────── */
 
 #app {
-  display: none;
   width: 100vw;
   height: 100vh;
   position: relative;
