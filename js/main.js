@@ -51,17 +51,20 @@ function doNext() { if (started) { flashSwitch('next'); nextVideo(); } }
 function doPrev() { if (started) { flashSwitch('prev'); prevVideo(); } }
 
 // ─── Swipe gesture (TikTok-style) ──────────────────────────
-let swipeY = 0, swipeX = 0, swipeTarget = null;
+// Listeners go on #video-overlay (z-index 5, above the cross-origin iframe)
+// so the iframe can never steal touch events and break subsequent swipes.
+// Pad/transport areas sit above the overlay (z-index 20) so their touches
+// never reach here — no exclusion logic needed.
+const videoOverlay = document.getElementById('video-overlay');
+let swipeY = 0, swipeX = 0;
 
-document.addEventListener('touchstart', (e) => {
+videoOverlay.addEventListener('touchstart', (e) => {
   swipeY = e.touches[0].clientY;
   swipeX = e.touches[0].clientX;
-  swipeTarget = e.target;
 }, { passive: true });
 
-document.addEventListener('touchend', (e) => {
+videoOverlay.addEventListener('touchend', (e) => {
   if (!started) return;
-  if (swipeTarget?.closest('.pad, #transport, #btn-orientation, #bt-panel')) return;
   const dy = swipeY - e.changedTouches[0].clientY;
   const dx = swipeX - e.changedTouches[0].clientX;
   if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) {
