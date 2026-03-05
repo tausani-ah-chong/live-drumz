@@ -116,6 +116,14 @@ body.force-landscape {
 
 /* ─── Video ───────────────────────────────────────────────── */
 
+/* Transparent layer that sits above the cross-origin YouTube iframe.
+   Captures all touch/pointer events so the iframe can never steal them. */
+#video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+}
+
 #video-container {
   position: fixed;
   inset: 0;
