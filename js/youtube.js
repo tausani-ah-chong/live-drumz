@@ -1,6 +1,13 @@
 const DEFAULT_VIDEO_ID = 'pvf_Qv4rmLM';
 
+// Add more YouTube video IDs here to build your playlist
+const PLAYLIST = [
+  'pvf_Qv4rmLM',
+];
+
 let player = null;
+let currentIndex = 0;
+let btDelayMs = 0;
 
 function loadAPI() {
   return new Promise((resolve) => {
@@ -15,11 +22,11 @@ function loadAPI() {
   });
 }
 
-export async function initPlayer(videoId = DEFAULT_VIDEO_ID) {
+export async function initPlayer() {
   await loadAPI();
 
   player = new YT.Player('yt-player', {
-    videoId,
+    videoId: PLAYLIST[currentIndex],
     playerVars: {
       autoplay: 1,
       mute: 1,        // muted autoplay works in all browsers
@@ -44,7 +51,6 @@ export async function initPlayer(videoId = DEFAULT_VIDEO_ID) {
   });
 }
 
-// Call inside a user gesture to unmute the video
 export function unMute() {
   if (!player) return;
   player.unMute();
@@ -70,4 +76,26 @@ export function ensurePlaying() {
   if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
     player.playVideo();
   }
+}
+
+export function prevVideo() {
+  if (!player) return;
+  currentIndex = (currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+  player.loadVideoById(PLAYLIST[currentIndex]);
+}
+
+export function nextVideo() {
+  if (!player) return;
+  currentIndex = (currentIndex + 1) % PLAYLIST.length;
+  player.loadVideoById(PLAYLIST[currentIndex]);
+}
+
+// Seek the video forward by the slider delta so BT-delayed audio lines up with taps.
+// Moving the slider from 0 → Xms seeks the video Xms ahead, compensating for BT latency.
+export function applyBtDelay(ms) {
+  if (!player) return;
+  const delta = ms - btDelayMs;
+  btDelayMs = ms;
+  if (delta === 0) return;
+  player.seekTo(Math.max(0, (player.getCurrentTime() || 0) + delta / 1000), true);
 }
