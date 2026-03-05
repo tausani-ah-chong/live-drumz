@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>live-drumz</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="rotate-prompt">
+    <div class="rotate-icon">↺</div>
+    <p>Rotate your phone to play</p>
+  </div>
+
+  <div id="app">
+    <div id="video-container">
+      <div id="yt-player"></div>
+    </div>
+
+    <div id="transport">
+      <button id="btn-back" aria-label="Skip back 10 seconds">◀◀</button>
+      <button id="btn-play-pause" aria-label="Play or pause">⏸</button>
+      <button id="btn-fwd" aria-label="Skip forward 10 seconds">▶▶</button>
+    </div>
+
+    <div id="pad-grid">
+      <div class="pad" data-sound="kick"></div>
+      <div class="pad" data-sound="snare"></div>
+      <div class="pad" data-sound="hihat"></div>
+      <div class="pad" data-sound="clap"></div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
