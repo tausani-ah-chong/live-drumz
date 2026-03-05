@@ -59,9 +59,10 @@ const videoOverlay = document.getElementById('video-overlay');
 let swipeY = 0, swipeX = 0;
 
 videoOverlay.addEventListener('touchstart', (e) => {
+  e.preventDefault(); // claim the touch — prevents browser routing it to the iframe
   swipeY = e.touches[0].clientY;
   swipeX = e.touches[0].clientX;
-}, { passive: true });
+}, { passive: false }); // passive: false is required to call preventDefault
 
 videoOverlay.addEventListener('touchend', (e) => {
   if (!started) return;
