@@ -16,7 +16,7 @@ export async function initPlayer() {
 
   player = new YT.Player('yt-player', {
     playerVars: {
-      list: 'PLxA687tYuMWhRdXqaeqUbGtm9A1TVv5er',
+      list: 'PLDIoUOhQQPlXFSnCfj8HuVhOUSC0QwxYD',
       listType: 'playlist',
       autoplay: 1,
       mute: 1,
