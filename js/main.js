@@ -1,4 +1,4 @@
-import { initPlayer, togglePlay, seekBy, unMute, ensurePlaying } from './youtube.js';
+import { initPlayer, togglePlay, prevVideo, nextVideo, unMute, ensurePlaying, applyBtDelay } from './youtube.js';
 import { initPads } from './pads.js';
 import { getContext } from './audio/context.js';
 import { prerender } from './audio/synth.js';
@@ -9,14 +9,37 @@ initPlayer();
 // Init pad event listeners
 initPads();
 
-// Transport controls
+// Transport: play/pause, prev/next video
 document.getElementById('btn-play-pause').addEventListener('click', togglePlay);
-document.getElementById('btn-back').addEventListener('click', () => seekBy(-10));
-document.getElementById('btn-fwd').addEventListener('click', () => seekBy(10));
+document.getElementById('btn-prev').addEventListener('click', prevVideo);
+document.getElementById('btn-next').addEventListener('click', nextVideo);
 
 // ─── Orientation toggle ─────────────────────────────────────
 document.getElementById('btn-orientation').addEventListener('click', () => {
   document.body.classList.toggle('force-landscape');
+});
+
+// ─── Bluetooth sync toggle + slider ────────────────────────
+const btnBt    = document.getElementById('btn-bt');
+const btPanel  = document.getElementById('bt-panel');
+const btSlider = document.getElementById('bt-slider');
+const btValue  = document.getElementById('bt-value');
+
+btnBt.addEventListener('click', () => {
+  const active = btnBt.classList.toggle('bt-active');
+  btPanel.hidden = !active;
+  if (!active) {
+    // Reset offset when BT mode is turned off
+    btSlider.value = 0;
+    btValue.textContent = '0 ms';
+    applyBtDelay(0);
+  }
+});
+
+btSlider.addEventListener('input', () => {
+  const ms = Number(btSlider.value);
+  btValue.textContent = `${ms} ms`;
+  applyBtDelay(ms);
 });
 
 // ─── Start overlay ─────────────────────────────────────────

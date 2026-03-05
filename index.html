@@ -23,9 +23,16 @@
   </div>
 
   <div id="transport">
-    <button id="btn-back" aria-label="Skip back 10 seconds">◀◀</button>
+    <button id="btn-prev" aria-label="Previous video">⏮</button>
     <button id="btn-play-pause" aria-label="Play or pause">⏸</button>
-    <button id="btn-fwd" aria-label="Skip forward 10 seconds">▶▶</button>
+    <button id="btn-next" aria-label="Next video">⏭</button>
+    <button id="btn-bt" aria-label="Bluetooth sync">BT</button>
+  </div>
+
+  <div id="bt-panel" hidden>
+    <span class="bt-panel-label">BT sync</span>
+    <input type="range" id="bt-slider" min="0" max="500" step="5" value="0">
+    <span id="bt-value">0 ms</span>
   </div>
 
   <div id="pad-grid">
