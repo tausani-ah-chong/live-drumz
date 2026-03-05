@@ -22,6 +22,7 @@ export async function initPlayer(videoId = DEFAULT_VIDEO_ID) {
     videoId,
     playerVars: {
       autoplay: 1,
+      mute: 1,        // muted autoplay works in all browsers
       controls: 0,
       modestbranding: 1,
       rel: 0,
@@ -43,6 +44,13 @@ export async function initPlayer(videoId = DEFAULT_VIDEO_ID) {
   });
 }
 
+// Call inside a user gesture to unmute the video
+export function unMute() {
+  if (!player) return;
+  player.unMute();
+  player.setVolume(100);
+}
+
 export function togglePlay() {
   if (!player) return;
   if (player.getPlayerState() === YT.PlayerState.PLAYING) {
@@ -57,7 +65,6 @@ export function seekBy(seconds) {
   player.seekTo(Math.max(0, (player.getCurrentTime() || 0) + seconds), true);
 }
 
-// Call this on first user gesture to unblock autoplay
 export function ensurePlaying() {
   if (!player) return;
   if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
