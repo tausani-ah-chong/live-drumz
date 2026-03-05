@@ -1,9 +1,7 @@
 const DEFAULT_VIDEO_ID = 'pvf_Qv4rmLM';
 
 let player = null;
-let onReadyCallback = null;
 
-// Load YouTube IFrame API script once
 function loadAPI() {
   return new Promise((resolve) => {
     if (window.YT && window.YT.Player) {
@@ -17,8 +15,7 @@ function loadAPI() {
   });
 }
 
-export async function initPlayer(videoId = DEFAULT_VIDEO_ID, onReady) {
-  onReadyCallback = onReady;
+export async function initPlayer(videoId = DEFAULT_VIDEO_ID) {
   await loadAPI();
 
   player = new YT.Player('yt-player', {
@@ -36,13 +33,11 @@ export async function initPlayer(videoId = DEFAULT_VIDEO_ID, onReady) {
     events: {
       onReady(event) {
         event.target.playVideo();
-        if (onReadyCallback) onReadyCallback();
       },
       onStateChange(event) {
         const btn = document.getElementById('btn-play-pause');
         if (!btn) return;
-        // YT.PlayerState.PLAYING = 1
-        btn.textContent = event.data === 1 ? '⏸' : '▶';
+        btn.textContent = event.data === YT.PlayerState.PLAYING ? '⏸' : '▶';
       },
     },
   });
@@ -50,9 +45,7 @@ export async function initPlayer(videoId = DEFAULT_VIDEO_ID, onReady) {
 
 export function togglePlay() {
   if (!player) return;
-  const state = player.getPlayerState();
-  // 1 = playing, 2 = paused, -1 = unstarted, 0 = ended, 3 = buffering
-  if (state === 1) {
+  if (player.getPlayerState() === YT.PlayerState.PLAYING) {
     player.pauseVideo();
   } else {
     player.playVideo();
@@ -61,6 +54,13 @@ export function togglePlay() {
 
 export function seekBy(seconds) {
   if (!player) return;
-  const current = player.getCurrentTime() || 0;
-  player.seekTo(Math.max(0, current + seconds), true);
+  player.seekTo(Math.max(0, (player.getCurrentTime() || 0) + seconds), true);
+}
+
+// Call this on first user gesture to unblock autoplay
+export function ensurePlaying() {
+  if (!player) return;
+  if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+    player.playVideo();
+  }
 }
