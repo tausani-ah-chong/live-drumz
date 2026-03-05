@@ -1,9 +1,9 @@
 import { initPlayer, togglePlay, seekBy, unMute } from './youtube.js';
 import { initPads } from './pads.js';
-import { resumeContext } from './audio/context.js';
+import { getContext } from './audio/context.js';
 import { prerender } from './audio/synth.js';
 
-// Start YouTube muted (autoplay works across all browsers when muted)
+// Start YouTube muted (autoplay works in all browsers when muted)
 initPlayer();
 
 // Init pad event listeners
@@ -15,27 +15,31 @@ document.getElementById('btn-back').addEventListener('click', () => seekBy(-10))
 document.getElementById('btn-fwd').addEventListener('click', () => seekBy(10));
 
 // ─── Start overlay ─────────────────────────────────────────
-// First tap: resume AudioContext, pre-render sounds, unmute video
 const overlay = document.getElementById('start-overlay');
+let started = false;
 
-async function handleStart(e) {
-  e.preventDefault();
-  overlay.removeEventListener('touchstart', handleStart);
-  overlay.removeEventListener('pointerdown', handleStart);
+function handleStart() {
+  if (started) return;
+  started = true;
 
-  // Resume AudioContext synchronously inside the user gesture
-  await resumeContext();
+  // Resume AudioContext — must be called synchronously inside user gesture
+  getContext().resume();
 
-  // Pre-render all drum sounds to AudioBuffers (~50ms)
-  await prerender();
+  // Dismiss overlay immediately so the user sees instant feedback
+  overlay.style.opacity = '0';
+  overlay.style.pointerEvents = 'none';
+  setTimeout(() => overlay.remove(), 400);
 
-  // Unmute the video now that we have a user gesture
-  unMute();
-
-  // Fade out and remove the overlay
-  overlay.classList.add('fade-out');
-  overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+  // Pre-render sounds and unmute video in the background
+  prerender().then(() => {
+    unMute();
+  });
 }
 
-overlay.addEventListener('touchstart', handleStart, { passive: false });
-overlay.addEventListener('pointerdown', handleStart);
+// Use click for broadest compatibility; also touchstart for speed
+overlay.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  handleStart();
+}, { passive: false });
+
+overlay.addEventListener('click', handleStart);
