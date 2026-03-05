@@ -1,20 +1,9 @@
-const DEFAULT_VIDEO_ID = 'pvf_Qv4rmLM';
-
-// Add more YouTube video IDs here to build your playlist
-const PLAYLIST = [
-  'pvf_Qv4rmLM',
-];
-
 let player = null;
-let currentIndex = 0;
 let btDelayMs = 0;
 
 function loadAPI() {
   return new Promise((resolve) => {
-    if (window.YT && window.YT.Player) {
-      resolve();
-      return;
-    }
+    if (window.YT && window.YT.Player) { resolve(); return; }
     window.onYouTubeIframeAPIReady = resolve;
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
@@ -26,10 +15,11 @@ export async function initPlayer() {
   await loadAPI();
 
   player = new YT.Player('yt-player', {
-    videoId: PLAYLIST[currentIndex],
     playerVars: {
+      list: 'PLxA687tYuMWhRdXqaeqUbGtm9A1TVv5er',
+      listType: 'playlist',
       autoplay: 1,
-      mute: 1,        // muted autoplay works in all browsers
+      mute: 1,
       controls: 0,
       modestbranding: 1,
       rel: 0,
@@ -66,11 +56,6 @@ export function togglePlay() {
   }
 }
 
-export function seekBy(seconds) {
-  if (!player) return;
-  player.seekTo(Math.max(0, (player.getCurrentTime() || 0) + seconds), true);
-}
-
 export function ensurePlaying() {
   if (!player) return;
   if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
@@ -80,18 +65,14 @@ export function ensurePlaying() {
 
 export function prevVideo() {
   if (!player) return;
-  currentIndex = (currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
-  player.loadVideoById(PLAYLIST[currentIndex]);
+  player.previousVideo();
 }
 
 export function nextVideo() {
   if (!player) return;
-  currentIndex = (currentIndex + 1) % PLAYLIST.length;
-  player.loadVideoById(PLAYLIST[currentIndex]);
+  player.nextVideo();
 }
 
-// Seek the video forward by the slider delta so BT-delayed audio lines up with taps.
-// Moving the slider from 0 → Xms seeks the video Xms ahead, compensating for BT latency.
 export function applyBtDelay(ms) {
   if (!player) return;
   const delta = ms - btDelayMs;

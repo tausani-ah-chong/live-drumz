@@ -9,10 +9,8 @@ initPlayer();
 // Init pad event listeners
 initPads();
 
-// Transport: play/pause, prev/next video
+// Transport: play/pause only (track switching is via swipe)
 document.getElementById('btn-play-pause').addEventListener('click', togglePlay);
-document.getElementById('btn-prev').addEventListener('click', prevVideo);
-document.getElementById('btn-next').addEventListener('click', nextVideo);
 
 // ─── Orientation toggle ─────────────────────────────────────
 document.getElementById('btn-orientation').addEventListener('click', () => {
@@ -29,7 +27,6 @@ btnBt.addEventListener('click', () => {
   const active = btnBt.classList.toggle('bt-active');
   btPanel.hidden = !active;
   if (!active) {
-    // Reset offset when BT mode is turned off
     btSlider.value = 0;
     btValue.textContent = '0 ms';
     applyBtDelay(0);
@@ -41,6 +38,45 @@ btSlider.addEventListener('input', () => {
   btValue.textContent = ms === 0 ? '0 ms' : `${ms > 0 ? '+' : ''}${ms} ms`;
   applyBtDelay(ms);
 });
+
+// ─── Track switch helpers ───────────────────────────────────
+function flashSwitch(dir) {
+  const el = document.getElementById('switch-overlay');
+  el.querySelector('.switch-arrow').textContent = dir === 'next' ? '↑' : '↓';
+  el.classList.add('active');
+  setTimeout(() => el.classList.remove('active'), 350);
+}
+
+function doNext() { if (started) { flashSwitch('next'); nextVideo(); } }
+function doPrev() { if (started) { flashSwitch('prev'); prevVideo(); } }
+
+// ─── Swipe gesture (TikTok-style) ──────────────────────────
+let swipeY = 0, swipeX = 0, swipeTarget = null;
+
+document.addEventListener('touchstart', (e) => {
+  swipeY = e.touches[0].clientY;
+  swipeX = e.touches[0].clientX;
+  swipeTarget = e.target;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (!started) return;
+  if (swipeTarget?.closest('.pad, #transport, #btn-orientation, #bt-panel')) return;
+  const dy = swipeY - e.changedTouches[0].clientY;
+  const dx = swipeX - e.changedTouches[0].clientX;
+  if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+    dy > 0 ? doNext() : doPrev();
+  }
+}, { passive: true });
+
+// ─── Mouse wheel / trackpad (desktop) ──────────────────────
+let wheelCooldown = false;
+document.addEventListener('wheel', (e) => {
+  if (!started || wheelCooldown || Math.abs(e.deltaY) < 30) return;
+  wheelCooldown = true;
+  setTimeout(() => { wheelCooldown = false; }, 1000);
+  e.deltaY > 0 ? doNext() : doPrev();
+}, { passive: true });
 
 // ─── Start overlay ─────────────────────────────────────────
 const overlay = document.getElementById('start-overlay');
