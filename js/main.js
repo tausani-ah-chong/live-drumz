@@ -63,7 +63,7 @@ let swipeY = 0, swipeX = 0, swiping = false;
 
 function setContainerY(y, animated) {
   videoContainer.style.transition = animated
-    ? 'transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    ? 'transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
     : 'none';
   videoContainer.style.transform = y === 0 ? '' : `translateY(${y}px)`;
 }
@@ -79,7 +79,7 @@ function commitSwipe(dir) {
     dir === 'next' ? nextVideo() : prevVideo();
     setContainerY(inY, false);
     requestAnimationFrame(() => requestAnimationFrame(() => setContainerY(0, true)));
-  }, 320);
+  }, 180);
 }
 
 videoOverlay.addEventListener('touchstart', (e) => {
