@@ -100,8 +100,9 @@ videoOverlay.addEventListener('touchmove', (e) => {
   const dy = e.touches[0].clientY - swipeY;
   const dx = e.touches[0].clientX - swipeX;
   if (swipeLandscape) {
-    // Physical left/right → translateY in rotated CSS space
-    if (Math.abs(dx) > Math.abs(dy)) setContainerY(dx * 0.6, false);
+    // Negate dx: in 90° CW rotation, CSS down = physical left, so we invert
+    // to make the container follow the finger rather than oppose it
+    if (Math.abs(dx) > Math.abs(dy)) setContainerY(-dx * 0.6, false);
   } else {
     if (Math.abs(dy) > Math.abs(dx)) setContainerY(dy * 0.6, false);
   }
@@ -114,7 +115,7 @@ videoOverlay.addEventListener('touchend', (e) => {
   const dx = swipeX - e.changedTouches[0].clientX;
   if (swipeLandscape) {
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      commitSwipe(dx > 0 ? 'next' : 'prev');
+      commitSwipe(dx > 0 ? 'prev' : 'next');
     } else {
       setContainerY(0, true);
     }
