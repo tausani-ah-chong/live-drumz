@@ -1,4 +1,4 @@
-import { initPlayer, togglePlay, prevVideo, nextVideo, unMute, ensurePlaying, applyBtDelay, loadFromUrl } from './youtube.js';
+import { initPlayer, togglePlay, prevVideo, nextVideo, unMute, ensurePlaying, loadFromUrl } from './youtube.js';
 import { initPads } from './pads.js';
 import { getContext } from './audio/context.js';
 import { prerender } from './audio/synth.js';
@@ -15,28 +15,6 @@ document.getElementById('btn-play-pause').addEventListener('click', togglePlay);
 // ─── Orientation toggle ─────────────────────────────────────
 document.getElementById('btn-orientation').addEventListener('click', () => {
   document.body.classList.toggle('force-landscape');
-});
-
-// ─── Bluetooth sync toggle + slider ────────────────────────
-const btnBt    = document.getElementById('btn-bt');
-const btPanel  = document.getElementById('bt-panel');
-const btSlider = document.getElementById('bt-slider');
-const btValue  = document.getElementById('bt-value');
-
-btnBt.addEventListener('click', () => {
-  const active = btnBt.classList.toggle('bt-active');
-  btPanel.hidden = !active;
-  if (!active) {
-    btSlider.value = 0;
-    btValue.textContent = '0 ms';
-    applyBtDelay(0);
-  }
-});
-
-btSlider.addEventListener('input', () => {
-  const ms = Number(btSlider.value);
-  btValue.textContent = ms === 0 ? '0 ms' : `${ms > 0 ? '+' : ''}${ms} ms`;
-  applyBtDelay(ms);
 });
 
 // ─── YouTube URL load panel ─────────────────────────────────
@@ -81,7 +59,9 @@ document.getElementById('video-overlay').addEventListener('click', () => {
 // ─── Track switch helpers ───────────────────────────────────
 function flashSwitch(dir) {
   const el = document.getElementById('switch-overlay');
-  el.querySelector('.switch-arrow').textContent = dir === 'next' ? '↑' : '↓';
+  el.querySelector('.switch-arrow').innerHTML = dir === 'next'
+    ? `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"/></svg>`
+    : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></svg>`;
   el.classList.add('active');
   setTimeout(() => el.classList.remove('active'), 350);
 }
