@@ -1,6 +1,35 @@
 let player = null;
 let btDelayMs = 0;
 
+const BASE_VARS = {
+  autoplay: 1,
+  controls: 0,
+  modestbranding: 1,
+  rel: 0,
+  playsinline: 1,
+  disablekb: 1,
+  fs: 0,
+  iv_load_policy: 3,
+};
+
+function onStateChange(event) {
+  const btn = document.getElementById('btn-play-pause');
+  if (!btn) return;
+  btn.textContent = event.data === YT.PlayerState.PLAYING ? '⏸' : '▶';
+}
+
+function buildPlayer(extraVars, videoId) {
+  const opts = {
+    playerVars: { ...BASE_VARS, ...extraVars },
+    events: {
+      onReady(event) { event.target.playVideo(); },
+      onStateChange,
+    },
+  };
+  if (videoId) opts.videoId = videoId;
+  player = new YT.Player('yt-player', opts);
+}
+
 function loadAPI() {
   return new Promise((resolve) => {
     if (window.YT && window.YT.Player) { resolve(); return; }
@@ -13,32 +42,7 @@ function loadAPI() {
 
 export async function initPlayer() {
   await loadAPI();
-
-  player = new YT.Player('yt-player', {
-    playerVars: {
-      list: 'PLDIoUOhQQPlXFSnCfj8HuVhOUSC0QwxYD',
-      listType: 'playlist',
-      autoplay: 1,
-      mute: 1,
-      controls: 0,
-      modestbranding: 1,
-      rel: 0,
-      playsinline: 1,
-      disablekb: 1,
-      fs: 0,
-      iv_load_policy: 3,
-    },
-    events: {
-      onReady(event) {
-        event.target.playVideo();
-      },
-      onStateChange(event) {
-        const btn = document.getElementById('btn-play-pause');
-        if (!btn) return;
-        btn.textContent = event.data === YT.PlayerState.PLAYING ? '⏸' : '▶';
-      },
-    },
-  });
+  buildPlayer({ list: 'PLDIoUOhQQPlXFSnCfj8HuVhOUSC0QwxYD', listType: 'playlist', mute: 1 });
 }
 
 export function unMute() {
@@ -114,10 +118,18 @@ function parseYouTubeUrl(input) {
 export function loadFromUrl(raw) {
   const parsed = parseYouTubeUrl(raw);
   if (!parsed || !player) return false;
+
+  // Destroy and rebuild — loadPlaylist is unreliable during active playback
+  player.destroy();
+  const container = document.getElementById('video-container');
+  const div = document.createElement('div');
+  div.id = 'yt-player';
+  container.appendChild(div);
+
   if (parsed.type === 'playlist') {
-    player.loadPlaylist({ list: parsed.id, listType: 'playlist', index: 0 });
+    buildPlayer({ list: parsed.id, listType: 'playlist' });
   } else {
-    player.loadVideoById(parsed.id);
+    buildPlayer({}, parsed.id);
   }
   return true;
 }
