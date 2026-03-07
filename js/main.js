@@ -71,7 +71,16 @@ function setContainerY(y, animated) {
   videoContainer.style.transform = y === 0 ? '' : `translateY(${y}px)`;
 }
 
+function dismissSwipeHint() {
+  const hint = document.getElementById('swipe-hint');
+  if (!hint || !hint.classList.contains('visible')) return;
+  hint.classList.remove('visible');
+  setTimeout(() => hint.remove(), 500);
+}
+
 function commitSwipe(dir) {
+  dismissSwipeHint();
+
   const vh = window.innerHeight;
   const outY = dir === 'next' ? -vh : vh;
   const inY  = dir === 'next' ?  vh : -vh;
@@ -156,6 +165,16 @@ function handleStart() {
   // Unmute + play synchronously inside user gesture so iOS allows audio
   ensurePlaying();
   unMute();
+
+  // Open URL panel so user can immediately load their playlist
+  setTimeout(() => {
+    btnLoad.classList.add('load-active');
+    ytPanel.hidden = false;
+  }, 500);
+
+  // Show swipe hint — dismissed on first track switch
+  const hint = document.getElementById('swipe-hint');
+  setTimeout(() => hint.classList.add('visible'), 600);
 }
 
 // touchstart for speed on mobile; click as fallback
