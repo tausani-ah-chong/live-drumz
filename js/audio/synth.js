@@ -26,11 +26,21 @@ function getMaster() {
 
 const buffers = {};
 
+const SOUNDS = [
+  { name: 'kick',    file: 'sounds/kick.wav' },
+  { name: 'snare',   file: 'sounds/snare.wav' },
+  { name: 'hihat',   file: 'sounds/hihat.wav' },
+  { name: 'clap',    file: 'sounds/clap.wav' },
+  { name: 'sfx-fah',  file: 'sounds/sfx-fah.mp3' },
+  { name: 'sfx-ack',  file: 'sounds/sfx-ack.mp3' },
+  { name: 'sfx-boom', file: 'sounds/sfx-boom.mp3' },
+  { name: 'sfx-pay',  file: 'sounds/sfx-pay.mp3' },
+];
+
 export async function prerender() {
   const ctx = getContext();
-  const names = ['kick', 'snare', 'hihat', 'clap'];
-  await Promise.all(names.map(async (name) => {
-    const res = await fetch(`sounds/${name}.wav`);
+  await Promise.all(SOUNDS.map(async ({ name, file }) => {
+    const res = await fetch(file);
     const arrayBuffer = await res.arrayBuffer();
     buffers[name] = await ctx.decodeAudioData(arrayBuffer);
   }));

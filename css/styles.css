@@ -354,6 +354,14 @@ body.force-landscape {
   transform: translateX(-50%);
   z-index: 20;
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+#sfx-row,
+#drum-row {
+  display: flex;
   gap: 14px;
   align-items: center;
 }
@@ -404,5 +412,44 @@ body.force-landscape {
   background: rgba(170, 90,  255, 0.9);
   border-color: #aa5aff;
   box-shadow: 0 0 32px rgba(170, 90, 255, 0.8);
+  transform: scale(0.91);
+}
+
+/* ─── SFX pads ────────────────────────────────────────────── */
+
+.sfx-pad {
+  width: 18vw;
+  height: 12vw;
+  max-width: 130px;
+  max-height: 86px;
+}
+
+.pad[data-sound="sfx-fah"]  { border-color: rgba(0, 200, 180, 0.7);  background: rgba(0, 200, 180, 0.15); }
+.pad[data-sound="sfx-ack"]  { border-color: rgba(0, 180, 255, 0.7);  background: rgba(0, 180, 255, 0.15); }
+.pad[data-sound="sfx-boom"] { border-color: rgba(255, 80, 160, 0.7); background: rgba(255, 80, 160, 0.15); }
+.pad[data-sound="sfx-pay"]  { border-color: rgba(80, 220, 100, 0.7); background: rgba(80, 220, 100, 0.15); }
+
+.pad[data-sound="sfx-fah"].pad--active {
+  background: rgba(0, 200, 180, 0.9);
+  border-color: #00c8b4;
+  box-shadow: 0 0 32px rgba(0, 200, 180, 0.8);
+  transform: scale(0.91);
+}
+.pad[data-sound="sfx-ack"].pad--active {
+  background: rgba(0, 180, 255, 0.9);
+  border-color: #00b4ff;
+  box-shadow: 0 0 32px rgba(0, 180, 255, 0.8);
+  transform: scale(0.91);
+}
+.pad[data-sound="sfx-boom"].pad--active {
+  background: rgba(255, 80, 160, 0.9);
+  border-color: #ff50a0;
+  box-shadow: 0 0 32px rgba(255, 80, 160, 0.8);
+  transform: scale(0.91);
+}
+.pad[data-sound="sfx-pay"].pad--active {
+  background: rgba(80, 220, 100, 0.9);
+  border-color: #50dc64;
+  box-shadow: 0 0 32px rgba(80, 220, 100, 0.8);
   transform: scale(0.91);
 }
