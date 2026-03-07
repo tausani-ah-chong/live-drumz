@@ -5,6 +5,10 @@ const KEY_MAP = {
   w: 'clap',
   e: 'snare',
   r: 'hihat',
+  a: 'sfx-fah',
+  s: 'sfx-ack',
+  d: 'sfx-boom',
+  f: 'sfx-pay',
 };
 
 function triggerPad(el) {
