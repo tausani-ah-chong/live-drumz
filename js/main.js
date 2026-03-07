@@ -62,7 +62,7 @@ document.getElementById('video-overlay').addEventListener('click', () => {
 // ─── Animated video swipe ──────────────────────────────────
 const videoContainer = document.getElementById('video-container');
 const videoOverlay   = document.getElementById('video-overlay');
-let swipeY = 0, swipeX = 0, swiping = false;
+let swipeY = 0, swipeX = 0, swiping = false, swipeLandscape = false;
 
 function setContainerY(y, animated) {
   videoContainer.style.transition = animated
@@ -90,6 +90,8 @@ videoOverlay.addEventListener('touchstart', (e) => {
   swipeY = e.touches[0].clientY;
   swipeX = e.touches[0].clientX;
   swiping = true;
+  // Capture landscape state at gesture start so it stays consistent
+  swipeLandscape = document.body.classList.contains('force-landscape');
   setContainerY(0, false);
 }, { passive: false });
 
@@ -97,8 +99,11 @@ videoOverlay.addEventListener('touchmove', (e) => {
   if (!swiping || !started) return;
   const dy = e.touches[0].clientY - swipeY;
   const dx = e.touches[0].clientX - swipeX;
-  if (Math.abs(dy) > Math.abs(dx)) {
-    setContainerY(dy * 0.6, false); // 0.6 resistance feel
+  if (swipeLandscape) {
+    // Physical left/right → translateY in rotated CSS space
+    if (Math.abs(dx) > Math.abs(dy)) setContainerY(dx * 0.6, false);
+  } else {
+    if (Math.abs(dy) > Math.abs(dx)) setContainerY(dy * 0.6, false);
   }
 }, { passive: true });
 
@@ -107,10 +112,18 @@ videoOverlay.addEventListener('touchend', (e) => {
   if (!started) return;
   const dy = swipeY - e.changedTouches[0].clientY;
   const dx = swipeX - e.changedTouches[0].clientX;
-  if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) {
-    commitSwipe(dy > 0 ? 'next' : 'prev');
+  if (swipeLandscape) {
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      commitSwipe(dx > 0 ? 'next' : 'prev');
+    } else {
+      setContainerY(0, true);
+    }
   } else {
-    setContainerY(0, true); // spring back
+    if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+      commitSwipe(dy > 0 ? 'next' : 'prev');
+    } else {
+      setContainerY(0, true);
+    }
   }
 }, { passive: true });
 
