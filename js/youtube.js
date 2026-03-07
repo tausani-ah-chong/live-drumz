@@ -44,7 +44,7 @@ function loadAPI() {
 
 export async function initPlayer() {
   await loadAPI();
-  buildPlayer({ list: 'PLDIoUOhQQPlXFSnCfj8HuVhOUSC0QwxYD', listType: 'playlist', mute: 1 });
+  buildPlayer({ list: 'PLy20ZxgzTUAk3pVjCvRA-QCOzZ35k8re2', listType: 'playlist', mute: 1 });
 }
 
 export function unMute() {
