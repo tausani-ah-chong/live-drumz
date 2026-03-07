@@ -9,6 +9,9 @@ initPlayer();
 // Init pad event listeners
 initPads();
 
+// Pre-render drum sounds immediately — OfflineAudioContext needs no user gesture
+prerender();
+
 // Transport: play/pause only (track switching is via swipe)
 document.getElementById('btn-play-pause').addEventListener('click', togglePlay);
 
@@ -136,11 +139,9 @@ function handleStart() {
   overlay.style.pointerEvents = 'none';
   setTimeout(() => overlay.remove(), 400);
 
-  // Start video playing and unmute; pre-render drum sounds in background
+  // Unmute + play synchronously inside user gesture so iOS allows audio
   ensurePlaying();
-  prerender().then(() => {
-    unMute();
-  });
+  unMute();
 }
 
 // touchstart for speed on mobile; click as fallback
