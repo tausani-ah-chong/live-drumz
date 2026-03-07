@@ -25,6 +25,16 @@
   color: #fff;
 }
 
+/* In force-landscape the physical bottom (home indicator) becomes logical right,
+   and the physical top (notch) becomes logical left — compensate with safe areas */
+body.force-landscape #transport {
+  right: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+}
+
+body.force-landscape #btn-orientation {
+  left: max(16px, calc(env(safe-area-inset-top) + 8px));
+}
+
 /* Force-landscape: rotate entire page 90° for portrait-mode users */
 body.force-landscape {
   position: fixed;
