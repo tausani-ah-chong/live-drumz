@@ -15,7 +15,9 @@ const BASE_VARS = {
 function onStateChange(event) {
   const btn = document.getElementById('btn-play-pause');
   if (!btn) return;
-  btn.textContent = event.data === YT.PlayerState.PLAYING ? '⏸' : '▶';
+  const playing = event.data === YT.PlayerState.PLAYING;
+  btn.querySelector('.icon-pause').style.display = playing ? 'block' : 'none';
+  btn.querySelector('.icon-play').style.display  = playing ? 'none' : 'block';
 }
 
 function buildPlayer(extraVars, videoId) {

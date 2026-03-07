@@ -42,6 +42,7 @@ export function playSound(name) {
   const buf = buffers[name];
   if (!buf) return;
   const ctx = getContext();
+  if (ctx.state === 'suspended') ctx.resume();
   const src = ctx.createBufferSource();
   src.buffer = buf;
   src.connect(getMaster());

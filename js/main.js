@@ -1,4 +1,4 @@
-import { initPlayer, togglePlay, prevVideo, nextVideo, unMute, ensurePlaying, applyBtDelay, loadFromUrl } from './youtube.js';
+import { initPlayer, togglePlay, prevVideo, nextVideo, unMute, ensurePlaying, loadFromUrl } from './youtube.js';
 import { initPads } from './pads.js';
 import { getContext } from './audio/context.js';
 import { prerender } from './audio/synth.js';
@@ -9,34 +9,15 @@ initPlayer();
 // Init pad event listeners
 initPads();
 
+// Pre-render drum sounds immediately — OfflineAudioContext needs no user gesture
+prerender();
+
 // Transport: play/pause only (track switching is via swipe)
 document.getElementById('btn-play-pause').addEventListener('click', togglePlay);
 
 // ─── Orientation toggle ─────────────────────────────────────
 document.getElementById('btn-orientation').addEventListener('click', () => {
   document.body.classList.toggle('force-landscape');
-});
-
-// ─── Bluetooth sync toggle + slider ────────────────────────
-const btnBt    = document.getElementById('btn-bt');
-const btPanel  = document.getElementById('bt-panel');
-const btSlider = document.getElementById('bt-slider');
-const btValue  = document.getElementById('bt-value');
-
-btnBt.addEventListener('click', () => {
-  const active = btnBt.classList.toggle('bt-active');
-  btPanel.hidden = !active;
-  if (!active) {
-    btSlider.value = 0;
-    btValue.textContent = '0 ms';
-    applyBtDelay(0);
-  }
-});
-
-btSlider.addEventListener('input', () => {
-  const ms = Number(btSlider.value);
-  btValue.textContent = ms === 0 ? '0 ms' : `${ms > 0 ? '+' : ''}${ms} ms`;
-  applyBtDelay(ms);
 });
 
 // ─── YouTube URL load panel ─────────────────────────────────
@@ -78,37 +59,81 @@ document.getElementById('video-overlay').addEventListener('click', () => {
   if (!ytPanel.hidden) closeLoadPanel();
 });
 
-// ─── Track switch helpers ───────────────────────────────────
-function flashSwitch(dir) {
-  const el = document.getElementById('switch-overlay');
-  el.querySelector('.switch-arrow').textContent = dir === 'next' ? '↑' : '↓';
-  el.classList.add('active');
-  setTimeout(() => el.classList.remove('active'), 350);
+// ─── Animated video swipe ──────────────────────────────────
+const videoContainer = document.getElementById('video-container');
+const videoOverlay   = document.getElementById('video-overlay');
+let swipeY = 0, swipeX = 0, swiping = false, swipeLandscape = false;
+
+function setContainerY(y, animated) {
+  videoContainer.style.transition = animated
+    ? 'transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    : 'none';
+  videoContainer.style.transform = y === 0 ? '' : `translateY(${y}px)`;
 }
 
-function doNext() { if (started) { flashSwitch('next'); nextVideo(); } }
-function doPrev() { if (started) { flashSwitch('prev'); prevVideo(); } }
+function dismissSwipeHint() {
+  const hint = document.getElementById('swipe-hint');
+  if (!hint || !hint.classList.contains('visible')) return;
+  hint.classList.remove('visible');
+  setTimeout(() => hint.remove(), 500);
+}
 
-// ─── Swipe gesture (TikTok-style) ──────────────────────────
-// Listeners go on #video-overlay (z-index 5, above the cross-origin iframe)
-// so the iframe can never steal touch events and break subsequent swipes.
-// Pad/transport areas sit above the overlay (z-index 20) so their touches
-// never reach here — no exclusion logic needed.
-const videoOverlay = document.getElementById('video-overlay');
-let swipeY = 0, swipeX = 0;
+function commitSwipe(dir) {
+  dismissSwipeHint();
+
+  const vh = window.innerHeight;
+  const outY = dir === 'next' ? -vh : vh;
+  const inY  = dir === 'next' ?  vh : -vh;
+
+  setContainerY(outY, true);
+
+  setTimeout(() => {
+    dir === 'next' ? nextVideo() : prevVideo();
+    setContainerY(inY, false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setContainerY(0, true)));
+  }, 180);
+}
 
 videoOverlay.addEventListener('touchstart', (e) => {
-  e.preventDefault(); // claim the touch — prevents browser routing it to the iframe
+  e.preventDefault();
   swipeY = e.touches[0].clientY;
   swipeX = e.touches[0].clientX;
-}, { passive: false }); // passive: false is required to call preventDefault
+  swiping = true;
+  // Capture landscape state at gesture start so it stays consistent
+  swipeLandscape = document.body.classList.contains('force-landscape');
+  setContainerY(0, false);
+}, { passive: false });
+
+videoOverlay.addEventListener('touchmove', (e) => {
+  if (!swiping || !started) return;
+  const dy = e.touches[0].clientY - swipeY;
+  const dx = e.touches[0].clientX - swipeX;
+  if (swipeLandscape) {
+    // Negate dx: in 90° CW rotation, CSS down = physical left, so we invert
+    // to make the container follow the finger rather than oppose it
+    if (Math.abs(dx) > Math.abs(dy)) setContainerY(-dx * 0.6, false);
+  } else {
+    if (Math.abs(dy) > Math.abs(dx)) setContainerY(dy * 0.6, false);
+  }
+}, { passive: true });
 
 videoOverlay.addEventListener('touchend', (e) => {
+  swiping = false;
   if (!started) return;
   const dy = swipeY - e.changedTouches[0].clientY;
   const dx = swipeX - e.changedTouches[0].clientX;
-  if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) {
-    dy > 0 ? doNext() : doPrev();
+  if (swipeLandscape) {
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      commitSwipe(dx > 0 ? 'prev' : 'next');
+    } else {
+      setContainerY(0, true);
+    }
+  } else {
+    if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+      commitSwipe(dy > 0 ? 'next' : 'prev');
+    } else {
+      setContainerY(0, true);
+    }
   }
 }, { passive: true });
 
@@ -118,7 +143,7 @@ document.addEventListener('wheel', (e) => {
   if (!started || wheelCooldown || Math.abs(e.deltaY) < 30) return;
   wheelCooldown = true;
   setTimeout(() => { wheelCooldown = false; }, 1000);
-  e.deltaY > 0 ? doNext() : doPrev();
+  commitSwipe(e.deltaY > 0 ? 'next' : 'prev');
 }, { passive: true });
 
 // ─── Start overlay ─────────────────────────────────────────
@@ -137,11 +162,19 @@ function handleStart() {
   overlay.style.pointerEvents = 'none';
   setTimeout(() => overlay.remove(), 400);
 
-  // Start video playing and unmute; pre-render drum sounds in background
+  // Unmute + play synchronously inside user gesture so iOS allows audio
   ensurePlaying();
-  prerender().then(() => {
-    unMute();
-  });
+  unMute();
+
+  // Open URL panel so user can immediately load their playlist
+  setTimeout(() => {
+    btnLoad.classList.add('load-active');
+    ytPanel.hidden = false;
+  }, 500);
+
+  // Show swipe hint — dismissed on first track switch
+  const hint = document.getElementById('swipe-hint');
+  setTimeout(() => hint.classList.add('visible'), 600);
 }
 
 // touchstart for speed on mobile; click as fallback
