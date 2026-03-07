@@ -56,39 +56,58 @@ document.getElementById('video-overlay').addEventListener('click', () => {
   if (!ytPanel.hidden) closeLoadPanel();
 });
 
-// ─── Track switch helpers ───────────────────────────────────
-function flashSwitch(dir) {
-  const el = document.getElementById('switch-overlay');
-  el.querySelector('.switch-arrow').innerHTML = dir === 'next'
-    ? `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"/></svg>`
-    : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></svg>`;
-  el.classList.add('active');
-  setTimeout(() => el.classList.remove('active'), 350);
+// ─── Animated video swipe ──────────────────────────────────
+const videoContainer = document.getElementById('video-container');
+const videoOverlay   = document.getElementById('video-overlay');
+let swipeY = 0, swipeX = 0, swiping = false;
+
+function setContainerY(y, animated) {
+  videoContainer.style.transition = animated
+    ? 'transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    : 'none';
+  videoContainer.style.transform = y === 0 ? '' : `translateY(${y}px)`;
 }
 
-function doNext() { if (started) { flashSwitch('next'); nextVideo(); } }
-function doPrev() { if (started) { flashSwitch('prev'); prevVideo(); } }
+function commitSwipe(dir) {
+  const vh = window.innerHeight;
+  const outY = dir === 'next' ? -vh : vh;
+  const inY  = dir === 'next' ?  vh : -vh;
 
-// ─── Swipe gesture (TikTok-style) ──────────────────────────
-// Listeners go on #video-overlay (z-index 5, above the cross-origin iframe)
-// so the iframe can never steal touch events and break subsequent swipes.
-// Pad/transport areas sit above the overlay (z-index 20) so their touches
-// never reach here — no exclusion logic needed.
-const videoOverlay = document.getElementById('video-overlay');
-let swipeY = 0, swipeX = 0;
+  setContainerY(outY, true);
+
+  setTimeout(() => {
+    dir === 'next' ? nextVideo() : prevVideo();
+    setContainerY(inY, false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setContainerY(0, true)));
+  }, 320);
+}
 
 videoOverlay.addEventListener('touchstart', (e) => {
-  e.preventDefault(); // claim the touch — prevents browser routing it to the iframe
+  e.preventDefault();
   swipeY = e.touches[0].clientY;
   swipeX = e.touches[0].clientX;
-}, { passive: false }); // passive: false is required to call preventDefault
+  swiping = true;
+  setContainerY(0, false);
+}, { passive: false });
+
+videoOverlay.addEventListener('touchmove', (e) => {
+  if (!swiping || !started) return;
+  const dy = e.touches[0].clientY - swipeY;
+  const dx = e.touches[0].clientX - swipeX;
+  if (Math.abs(dy) > Math.abs(dx)) {
+    setContainerY(dy * 0.6, false); // 0.6 resistance feel
+  }
+}, { passive: true });
 
 videoOverlay.addEventListener('touchend', (e) => {
+  swiping = false;
   if (!started) return;
   const dy = swipeY - e.changedTouches[0].clientY;
   const dx = swipeX - e.changedTouches[0].clientX;
   if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) {
-    dy > 0 ? doNext() : doPrev();
+    commitSwipe(dy > 0 ? 'next' : 'prev');
+  } else {
+    setContainerY(0, true); // spring back
   }
 }, { passive: true });
 
@@ -98,7 +117,7 @@ document.addEventListener('wheel', (e) => {
   if (!started || wheelCooldown || Math.abs(e.deltaY) < 30) return;
   wheelCooldown = true;
   setTimeout(() => { wheelCooldown = false; }, 1000);
-  e.deltaY > 0 ? doNext() : doPrev();
+  commitSwipe(e.deltaY > 0 ? 'next' : 'prev');
 }, { passive: true });
 
 // ─── Start overlay ─────────────────────────────────────────
