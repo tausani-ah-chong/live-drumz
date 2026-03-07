@@ -26,13 +26,14 @@
 }
 
 /* In force-landscape the physical bottom (home indicator) becomes logical right,
-   and the physical top (notch) becomes logical left — compensate with safe areas */
+   and the physical top (notch) becomes logical left — compensate with safe areas.
+   Fallbacks ensure clearance even if env() returns 0 (CSS-rotation trick). */
 body.force-landscape #transport {
-  right: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+  right: max(50px, calc(env(safe-area-inset-bottom, 34px) + 16px));
 }
 
 body.force-landscape #btn-orientation {
-  left: max(16px, calc(env(safe-area-inset-top) + 8px));
+  left: max(16px, calc(env(safe-area-inset-top, 50px) + 16px));
 }
 
 /* Force-landscape: rotate entire page 90° for portrait-mode users */
